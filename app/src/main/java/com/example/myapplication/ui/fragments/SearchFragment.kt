@@ -69,10 +69,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
                 putSerializable("article", safeArticle)
             }
 
-            findNavController().navigate(
-                R.id.action_headLinesFragment_to_articleFragment,
-                bundle
-            )
+            findNavController().navigate(R.id.action_searchFragment2_to_articleFragment, bundle)
         }
 
         newsViewModel.searchNews.observe(viewLifecycleOwner) { response ->

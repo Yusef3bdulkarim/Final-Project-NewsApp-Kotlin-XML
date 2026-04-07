@@ -10,4 +10,4 @@ class Constants {
         const val QUERY_PAGE_SIZE = 20
     }
 }
-
+//git remote add origin https://github.com/Yusef3bdulkarim/Final-Project-NewsApp-Kotlin-XML.git
