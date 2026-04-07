@@ -59,9 +59,9 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
 
         newsAdapter.setOnItemClickListener {
             val safeArticle = it.copy(
-                source = it.source.copy(
-                    id = it.source.id ?: "",
-                    name = it.source.name ?: ""
+                source = it.source?.copy(
+                    id = it.source?.id ?: "",
+                    name = it.source?.name ?: ""
                 )
             )
 

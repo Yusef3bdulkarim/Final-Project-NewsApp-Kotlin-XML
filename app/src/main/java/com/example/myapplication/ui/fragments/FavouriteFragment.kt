@@ -32,9 +32,9 @@ class FavouriteFragment : Fragment(R.layout.fragment_favourite) {
 
         newsAdapter.setOnItemClickListener {
             val safeArticle = it.copy(
-                source = it.source.copy(
-                    id = it.source.id ?: "",
-                    name = it.source.name ?: ""
+                source = it.source?.copy(
+                    id = it.source?.id ?: "",
+                    name = it.source?.name ?: ""
                 )
             )
 

@@ -12,4 +12,8 @@
     <style name="App.Custom.Indicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
         <item name="android:color">@color/yellow</item>
     </style>
+
+    <style name="CircleImageStyle">
+        <item name="cornerSize">50%</item>
+    </style>
 </resources>

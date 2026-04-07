@@ -19,6 +19,8 @@ class NewsViewModel(app: Application, val newsRepository: NewsRepository) : Andr
     val headlines: MutableLiveData<Resource<NewsResponse>> = MutableLiveData()
     var headLinesPage = 1
     var headLinesResponse: NewsResponse? = null
+    var currentCountry = "us"
+    var currentCategory: String? = null
     val searchNews: MutableLiveData<Resource<NewsResponse>> = MutableLiveData()
     var searchNewsPage = 1
     var searchNewsResponse: NewsResponse? = null
@@ -26,8 +28,47 @@ class NewsViewModel(app: Application, val newsRepository: NewsRepository) : Andr
     var oldSearchQuery: String? = null
 
     init {
-        getHeadLines("us")
+        getHeadLines(currentCountry, currentCategory)
     }
+
+    fun getHeadLines(countryCode: String, category: String? = null) = viewModelScope.launch {
+        headlinesInternet(countryCode, category)
+    }
+
+    val categoryNews: MutableLiveData<Resource<NewsResponse>> = MutableLiveData()
+    var categoryPage = 1
+    var categoryResponse: NewsResponse? = null
+    fun getCategoryNews(category: String) = viewModelScope.launch {
+        categoryResponse = null
+        categoryPage = 1
+        categoryNews.postValue(Resource.Loading())
+
+        try {
+            if (internetConnection(getApplication())) {
+                val response = newsRepository.getHeadLines(currentCountry, category, categoryPage)
+                categoryNews.postValue(handleCategoryResponse(response))
+            }
+        } catch (t: Throwable) {
+            categoryNews.postValue(Resource.Error(t.message ?: "Error"))
+        }
+    }
+
+    private fun handleCategoryResponse(response: Response<NewsResponse>): Resource<NewsResponse> {
+        if (response.isSuccessful) {
+            response.body()?.let { resultResponce ->
+                if (categoryResponse == null) {
+                    categoryResponse = resultResponce
+                } else {
+                    val oldArticle = categoryResponse?.articles
+                    val newArticle = resultResponce.articles
+                    oldArticle?.addAll(newArticle)
+                }
+                return Resource.Success(categoryResponse ?: resultResponce)
+            }
+        }
+        return Resource.Error(response.message())
+    }
+
 
     private fun handleHeadlinesResponse(response: Response<NewsResponse>): Resource<NewsResponse> {
         if (response.isSuccessful) {
@@ -85,25 +126,33 @@ class NewsViewModel(app: Application, val newsRepository: NewsRepository) : Andr
             } ?: false
         }
     }
-    private suspend fun headlinesInternet(countryCode : String) {
+
+    private suspend fun headlinesInternet(countryCode: String, category: String?) {
+        if (countryCode != currentCountry || category != currentCategory) {
+            currentCountry = countryCode
+            currentCategory = category
+            headLinesPage = 1
+            headLinesResponse = null
+        }
+
         headlines.postValue(Resource.Loading())
         try {
             if (internetConnection(this.getApplication())) {
-                val response = newsRepository.getHeadLines(countryCode, headLinesPage)
+                val response =
+                    newsRepository.getHeadLines(currentCountry, currentCategory, headLinesPage)
                 headlines.postValue(handleHeadlinesResponse(response))
             } else {
                 headlines.postValue(Resource.Error("No Internet Connection"))
             }
-        } catch (t : Throwable) {
+        } catch (t: Throwable) {
             when (t) {
                 is IOException -> headlines.postValue(Resource.Error("Network Failure"))
-                else -> headlines.postValue(Resource.Error("Conversion Error"))
+                else -> headlines.postValue(Resource.Error("Conversion Error: ${t.message}"))
             }
         }
     }
 
-    private suspend fun searchNewsInternet(searchQuery : String) {
-        newsSearchQuery = searchQuery
+    private suspend fun searchNewsInternet(searchQuery: String) {
         searchNews.postValue(Resource.Loading())
         try {
             if (internetConnection(this.getApplication())) {
@@ -112,19 +161,13 @@ class NewsViewModel(app: Application, val newsRepository: NewsRepository) : Andr
             } else {
                 searchNews.postValue(Resource.Error("No Internet Connection"))
             }
-        } catch (t : Throwable) {
-            when (t) {
-                is IOException -> searchNews.postValue(Resource.Error("Network Failure"))
-                else -> searchNews.postValue(Resource.Error("Conversion Error"))
-            }
+        } catch (t: Throwable) {
+            searchNews.postValue(Resource.Error("Search Error: ${t.message}"))
         }
     }
 
-     fun getHeadLines(countryCode: String) = viewModelScope.launch {
-        headlinesInternet(countryCode)
-    }
 
-     fun searchNews(searchQuery: String) = viewModelScope.launch {
+    fun searchNews(searchQuery: String) = viewModelScope.launch {
         searchNewsInternet(searchQuery)
     }
 }

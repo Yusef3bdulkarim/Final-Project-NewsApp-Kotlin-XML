@@ -2,12 +2,15 @@ package com.example.myapplication.ui.fragments
 
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AbsListView
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.cardview.widget.CardView
@@ -15,8 +18,11 @@ import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.myapplication.adapter.BannerAdapter
+import com.example.myapplication.adapter.CategoryAdapter
 import com.example.myapplication.adapter.NewsAdapter
 import com.example.myapplication.models.Article
+import com.example.myapplication.models.CategoryModel
 import com.example.myapplication.ui.NewsActivity
 import com.example.myapplication.ui.NewsViewModel
 import com.example.myapplication.util.Constants
@@ -32,6 +38,7 @@ class HeadLinesFragment : Fragment(R.layout.fragment_head_lines) {
     lateinit var retryButton: Button
     lateinit var errorText: TextView
     lateinit var itemHeadLinesError: CardView
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -49,7 +56,7 @@ class HeadLinesFragment : Fragment(R.layout.fragment_head_lines) {
 
         newsAdapter.setOnItemClickListener {
             val safeArticle = it.copy(
-                source = it.source.copy(
+                source = it.source?.copy(
                     id = it.source.id ?: "",
                     name = it.source.name ?: ""
                 )
@@ -64,9 +71,8 @@ class HeadLinesFragment : Fragment(R.layout.fragment_head_lines) {
                 bundle
             )
         }
-        newsViewModel.headlines.observe(viewLifecycleOwner , Observer {
-                response ->
-            when(response){
+        newsViewModel.headlines.observe(viewLifecycleOwner, Observer { response ->
+            when (response) {
                 is Resource.Success -> {
                     hideProgressbar()
                     hideErrorMessage()
@@ -79,6 +85,7 @@ class HeadLinesFragment : Fragment(R.layout.fragment_head_lines) {
                         }
                     }
                 }
+
                 is Resource.Error<*> -> {
                     hideProgressbar()
                     response.message?.let { message ->
@@ -86,16 +93,80 @@ class HeadLinesFragment : Fragment(R.layout.fragment_head_lines) {
                         showErrorMessage(message)
                     }
                 }
+
                 is Resource.Loading -> {
                     showProgressbar()
                 }
+
+
             }
 
 
         })
         retryButton.setOnClickListener {
-            newsViewModel.getHeadLines ("us")
+            newsViewModel.getHeadLines(newsViewModel.currentCountry, newsViewModel.currentCategory)
         }
+        newsAdapter.setOnItemClickListener { article ->
+            val action =
+                HeadLinesFragmentDirections.actionHeadLinesFragmentToArticleFragment(article)
+            findNavController().navigate(action)
+        }
+        //////////////////
+        val categoryList = listOf(
+            CategoryModel("business", "Business", R.drawable.busniess ),
+            CategoryModel("entertainment", "Entertainment", R.drawable.entertainment),
+            CategoryModel("health", "Health", R.drawable.health),
+            CategoryModel("science", "Science", R.drawable.science),
+            CategoryModel("sports", "Sports", R.drawable.sport ),
+            CategoryModel("technology", "Tech", R.drawable.tech)
+        )
+        val categoryAdapter = CategoryAdapter(categoryList) { category ->
+            val bundle = Bundle().apply {
+                putString("categoryName", category.categoryName)
+                putString("displayName", category.displayName)
+            }
+            val action = HeadLinesFragmentDirections
+                .actionHeadLinesFragmentToCategoryDetailsFragment(
+                    category.categoryName,
+                    category.displayName
+                )
+            findNavController().navigate(action)
+        }
+        binding.recyclerCategories.apply {
+            adapter = categoryAdapter
+            layoutManager = LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
+        }
+        ///////////////////////////
+
+        val images = listOf(R.drawable.banner1, R.drawable.banner2, R.drawable.banner3)
+
+        val bannerAdapter = BannerAdapter(images)
+        binding.viewPagerBanner.adapter = bannerAdapter
+
+        binding.indicator.setViewPager(binding.viewPagerBanner)
+
+        val handler = Handler(Looper.getMainLooper())
+        val runnable = object : Runnable {
+            override fun run() {
+                if (binding.viewPagerBanner != null) {
+                    // 1. مسح أي طلبات قديمة (عشان نضمن إن واحد بس اللي شغال)
+                    handler.removeCallbacks(this)
+
+                    var currentItem = binding.viewPagerBanner.currentItem
+                    currentItem = if (currentItem == images.size - 1) 0 else currentItem + 1
+                    binding.viewPagerBanner.setCurrentItem(currentItem, true)
+
+                    // 2. طلب القلبة الجاية بعد 3 ثواني
+                    handler.postDelayed(this, 3000)
+                }
+            }
+        }
+        handler.postDelayed(runnable, 5000)
+
+        binding.indicator.setViewPager(binding.viewPagerBanner)
+
+        bannerAdapter.registerAdapterDataObserver(binding.indicator.adapterDataObserver)
+
     }
 
     var isError = false
@@ -165,4 +236,5 @@ class HeadLinesFragment : Fragment(R.layout.fragment_head_lines) {
 
         }
     }
+
 }

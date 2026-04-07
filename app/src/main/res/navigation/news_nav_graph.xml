@@ -22,14 +22,7 @@
             android:id="@+id/action_favouriteFragment2_to_articleFragment"
             app:destination="@id/articleFragment" />
     </fragment>
-    <fragment
-        android:id="@+id/headLinesFragment"
-        android:name="com.example.myapplication.ui.fragments.HeadLinesFragment"
-        android:label="HeadLines" >
-        <action
-            android:id="@+id/action_headLinesFragment_to_articleFragment"
-            app:destination="@id/articleFragment" />
-    </fragment>
+
     <fragment
         android:id="@+id/searchFragment2"
         android:name="com.example.myapplication.ui.fragments.SearchFragment"
@@ -37,5 +30,33 @@
         <action
             android:id="@+id/action_searchFragment2_to_articleFragment"
             app:destination="@id/articleFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/CategoryDetailsFragment"
+        android:name="com.example.myapplication.ui.fragments.CategoryDetailsFragment"
+        android:label="Category News" >
+
+        <action
+            android:id="@+id/action_categoryDetailsFragment_to_articleFragment"
+            app:destination="@id/articleFragment" />
+
+        <argument
+            android:name="categoryName"
+            app:argType="string" />
+        <argument
+            android:name="displayName"
+            app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/headLinesFragment"
+        android:name="com.example.myapplication.ui.fragments.HeadLinesFragment"
+        android:label="HeadLines" >
+        <action
+            android:id="@+id/action_headLinesFragment_to_articleFragment"
+            app:destination="@id/articleFragment" />
+        <action
+            android:id="@+id/action_headLinesFragment_to_CategoryDetailsFragment"
+            app:destination="@id/CategoryDetailsFragment" />
     </fragment>
 </navigation>

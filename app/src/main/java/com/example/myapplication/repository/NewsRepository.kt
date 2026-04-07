@@ -6,8 +6,8 @@ import com.example.myapplication.models.Article
 
 class NewsRepository(val db: ArticleDatabase) {
 
-    suspend fun getHeadLines(countryCode: String, pageNumber: Int) =
-        RetrofitInstance.api.getHeadLines(countryCode, pageNumber)
+    suspend fun getHeadLines(countryCode: String,category: String?, pageNumber: Int) =
+        RetrofitInstance.api.getHeadLines(countryCode,category ,pageNumber)
 
     suspend fun searchNews(searchQuery: String, pageNumber: Int) =
         RetrofitInstance.api.searchForNews(searchQuery, pageNumber)
