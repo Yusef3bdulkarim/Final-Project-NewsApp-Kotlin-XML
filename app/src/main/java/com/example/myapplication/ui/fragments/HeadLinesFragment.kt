@@ -52,7 +52,34 @@ class HeadLinesFragment : Fragment(R.layout.fragment_head_lines) {
         errorText = view.findViewById(R.id.errorText)
 
         newsViewModel = (activity as NewsActivity).newsViewModel
+        val sharedPref = requireActivity().getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val savedQuery = sharedPref.getString("query", "news") ?: "news"
+
+        if (savedQuery != "news") {
+            newsViewModel.getNewsByLanguage(savedQuery)
+        }
         setupHeadLineRecycler()
+
+        newsViewModel.languageNews.observe(viewLifecycleOwner, Observer { response ->
+            when (response) {
+                is Resource.Success -> {
+                    hideProgressbar()
+                    hideErrorMessage()
+                    response.data?.let { newsResponse ->
+                        newsAdapter.differ.submitList(newsResponse.articles.toList())
+                    }
+                }
+                is Resource.Error -> {
+                    hideProgressbar()
+                    response.message?.let { message ->
+                        Toast.makeText(activity, "Error: $message", Toast.LENGTH_LONG).show()
+                    }
+                }
+                is Resource.Loading -> {
+                    showProgressbar()
+                }
+            }
+        })
 
         newsAdapter.setOnItemClickListener {
             val safeArticle = it.copy(

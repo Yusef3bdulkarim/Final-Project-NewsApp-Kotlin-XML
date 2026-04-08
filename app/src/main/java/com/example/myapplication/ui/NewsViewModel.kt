@@ -27,6 +27,12 @@ class NewsViewModel(app: Application, val newsRepository: NewsRepository) : Andr
     var newsSearchQuery: String? = null
     var oldSearchQuery: String? = null
 
+    var currentLanguage = "en"
+    var currentQuery = "news"
+    val languageNews: MutableLiveData<Resource<NewsResponse>> = MutableLiveData()
+    var languageNewsPage = 1
+    var languageNewsResponse: NewsResponse? = null
+
     init {
         getHeadLines(currentCountry, currentCategory)
     }
@@ -53,6 +59,20 @@ class NewsViewModel(app: Application, val newsRepository: NewsRepository) : Andr
         }
     }
 
+    fun getCategoryNewsByQuery(category: String, query: String) = viewModelScope.launch {
+        categoryResponse = null
+        categoryPage = 1
+        categoryNews.postValue(Resource.Loading())
+
+        try {
+            if (internetConnection(getApplication())) {
+                val response = newsRepository.getNewsByLanguage("$query $category", categoryPage)
+                categoryNews.postValue(handleCategoryResponse(response))
+            }
+        } catch (t: Throwable) {
+            categoryNews.postValue(Resource.Error(t.message ?: "Error"))
+        }
+    }
     private fun handleCategoryResponse(response: Response<NewsResponse>): Resource<NewsResponse> {
         if (response.isSuccessful) {
             response.body()?.let { resultResponce ->
@@ -169,5 +189,38 @@ class NewsViewModel(app: Application, val newsRepository: NewsRepository) : Andr
 
     fun searchNews(searchQuery: String) = viewModelScope.launch {
         searchNewsInternet(searchQuery)
+    }
+
+    fun getNewsByLanguage(query: String) = viewModelScope.launch {
+        languageNewsResponse = null
+        languageNewsPage = 1
+        languageNews.postValue(Resource.Loading())
+        try {
+            if (internetConnection(getApplication())) {
+                val response = newsRepository.getNewsByLanguage(query,  languageNewsPage)
+                languageNews.postValue(handleLanguageNewsResponse(response))
+            } else {
+                languageNews.postValue(Resource.Error("No Internet Connection"))
+            }
+        } catch (t: Throwable) {
+            languageNews.postValue(Resource.Error(t.message ?: "Error"))
+        }
+    }
+
+    private fun handleLanguageNewsResponse(response: Response<NewsResponse>): Resource<NewsResponse> {
+        if (response.isSuccessful) {
+            response.body()?.let { resultResponse ->
+                languageNewsPage++
+                if (languageNewsResponse == null) {
+                    languageNewsResponse = resultResponse
+                } else {
+                    val oldArticles = languageNewsResponse?.articles
+                    val newArticles = resultResponse.articles
+                    oldArticles?.addAll(newArticles)
+                }
+                return Resource.Success(languageNewsResponse ?: resultResponse)
+            }
+        }
+        return Resource.Error(response.message())
     }
 }

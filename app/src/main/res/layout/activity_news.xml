@@ -14,9 +14,11 @@
         android:layout_height="wrap_content"
         android:background="@color/purple"
         app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteX="0dp"
         app:titleTextColor="@color/white"
-
-        tools:layout_editor_absoluteX="0dp" />
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        />
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/newsNavHostFragment"
