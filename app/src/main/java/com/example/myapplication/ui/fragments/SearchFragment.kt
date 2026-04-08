@@ -70,7 +70,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
             }
 
             findNavController().navigate(
-                R.id.action_headLinesFragment_to_articleFragment,
+                R.id.action_searchFragment2_to_articleFragment,
                 bundle
             )
         }

@@ -43,7 +43,7 @@ class FavouriteFragment : Fragment(R.layout.fragment_favourite) {
             }
 
             findNavController().navigate(
-                R.id.action_headLinesFragment_to_articleFragment,
+                R.id.action_favouriteFragment2_to_articleFragment,
                 bundle
             )
 
