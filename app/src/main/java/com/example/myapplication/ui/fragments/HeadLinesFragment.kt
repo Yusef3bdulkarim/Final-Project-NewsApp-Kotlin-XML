@@ -39,6 +39,10 @@ class HeadLinesFragment : Fragment(R.layout.fragment_head_lines) {
     lateinit var errorText: TextView
     lateinit var itemHeadLinesError: CardView
 
+    private val handler = Handler(Looper.getMainLooper())
+
+    private lateinit var runnable: Runnable
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -69,12 +73,14 @@ class HeadLinesFragment : Fragment(R.layout.fragment_head_lines) {
                         newsAdapter.differ.submitList(newsResponse.articles.toList())
                     }
                 }
+
                 is Resource.Error -> {
                     hideProgressbar()
                     response.message?.let { message ->
                         Toast.makeText(activity, "Error: $message", Toast.LENGTH_LONG).show()
                     }
                 }
+
                 is Resource.Loading -> {
                     showProgressbar()
                 }
@@ -140,11 +146,11 @@ class HeadLinesFragment : Fragment(R.layout.fragment_head_lines) {
         }
         //////////////////
         val categoryList = listOf(
-            CategoryModel("business", "Business", R.drawable.busniess ),
+            CategoryModel("business", "Business", R.drawable.busniess),
             CategoryModel("entertainment", "Entertainment", R.drawable.entertainment),
             CategoryModel("health", "Health", R.drawable.health),
             CategoryModel("science", "Science", R.drawable.science),
-            CategoryModel("sports", "Sports", R.drawable.sport ),
+            CategoryModel("sports", "Sports", R.drawable.sport),
             CategoryModel("technology", "Tech", R.drawable.tech)
         )
         val categoryAdapter = CategoryAdapter(categoryList) { category ->
@@ -166,35 +172,36 @@ class HeadLinesFragment : Fragment(R.layout.fragment_head_lines) {
         ///////////////////////////
 
         val images = listOf(R.drawable.banner1, R.drawable.banner2, R.drawable.banner3)
-
         val bannerAdapter = BannerAdapter(images)
         binding.viewPagerBanner.adapter = bannerAdapter
-
         binding.indicator.setViewPager(binding.viewPagerBanner)
 
-        val handler = Handler(Looper.getMainLooper())
-        val runnable = object : Runnable {
+// تجهيز الـ Runnable
+        runnable = object : Runnable {
             override fun run() {
-                if (binding.viewPagerBanner != null) {
-                    // 1. مسح أي طلبات قديمة (عشان نضمن إن واحد بس اللي شغال)
-                    handler.removeCallbacks(this)
+                val currentItem = binding.viewPagerBanner.currentItem
+                val nextItem = if (currentItem == images.size - 1) 0 else currentItem + 1
 
-                    var currentItem = binding.viewPagerBanner.currentItem
-                    currentItem = if (currentItem == images.size - 1) 0 else currentItem + 1
-                    binding.viewPagerBanner.setCurrentItem(currentItem, true)
+                binding.viewPagerBanner.setCurrentItem(nextItem, true)
 
-                    // 2. طلب القلبة الجاية بعد 3 ثواني
-                    handler.postDelayed(this, 3000)
-                }
+                // إعادة الجدولة مرة واحدة فقط في نهاية التنفيذ
+                handler.postDelayed(this, 3000)
             }
         }
-        handler.postDelayed(runnable, 5000)
-
-        binding.indicator.setViewPager(binding.viewPagerBanner)
-
-        bannerAdapter.registerAdapterDataObserver(binding.indicator.adapterDataObserver)
-
     }
+
+    override fun onResume() {
+        super.onResume()
+        // ابدأ الحركة بعد 3 ثواني من ظهور الشاشة
+        handler.postDelayed(runnable, 3000)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // أوقف الـ Handler تماماً عشان ميعملش "تراكم" للعمليات في الخلفية
+        handler.removeCallbacks(runnable)
+    }
+
 
     var isError = false
     var isLoading = false
