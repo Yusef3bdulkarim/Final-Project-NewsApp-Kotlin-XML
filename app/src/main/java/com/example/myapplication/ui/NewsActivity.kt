@@ -1,7 +1,13 @@
 package com.example.myapplication.ui
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
@@ -11,6 +17,8 @@ import com.example.myapplication.dp.ArticleDatabase
 import com.example.myapplication.repository.NewsRepository
 import com.example.newsprojectpractice.R
 import com.example.newsprojectpractice.databinding.ActivityNewsBinding
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.serialization.Contextual
 
 class NewsActivity : AppCompatActivity() {
 
@@ -19,6 +27,7 @@ class NewsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         binding = ActivityNewsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -49,4 +58,45 @@ class NewsActivity : AppCompatActivity() {
         val navController = navHostFragment.navController
         return navController.navigateUp() || super.onSupportNavigateUp()
     }
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.news_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_settings -> {
+                showCountryDialog()
+                true
+            }
+            R.id.action_logout -> {
+                // here log out with firebase
+                FirebaseAuth.getInstance().signOut()
+
+                val intent = Intent(this, LoginActivity::class.java)
+                startActivity(intent)
+
+                finish()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun showCountryDialog(){
+        val options = arrayOf("🇺🇸 United States", "🇪🇬 Egypt", "🇫🇷 France")
+        val queries = arrayOf("news", "مصر", "actualité")
+        AlertDialog.Builder(this)
+            .setTitle("Select Country")
+            .setItems(options) { _, index ->
+                val sharedPref = getSharedPreferences("settings" , Context.MODE_PRIVATE)
+                sharedPref.edit()
+                    .putString("query" , queries[index])
+                    .apply()
+
+                newsViewModel.getNewsByLanguage(queries[index])
+            }
+            .show()
+    }
 }
+

@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.fragments
 
+import android.content.Context
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -37,7 +38,9 @@ class CategoryDetailsFragment : Fragment(R.layout.category_details_fragment) {
         }
 
         val category = args.categoryName
-        newsViewModel.getCategoryNews(category)
+        val sharedPref = requireActivity().getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val savedQuery = sharedPref.getString("query", "news") ?: "news"
+        newsViewModel.getCategoryNewsByQuery(category ,savedQuery)
 
         newsViewModel.categoryNews.observe(viewLifecycleOwner) { response ->
             when (response) {
