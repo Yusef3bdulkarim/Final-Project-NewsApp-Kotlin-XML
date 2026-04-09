@@ -1,6 +1,7 @@
 package com.example.myapplication.ui
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -16,6 +17,7 @@ import com.example.myapplication.dp.ArticleDatabase
 import com.example.myapplication.repository.NewsRepository
 import com.example.newsprojectpractice.R
 import com.example.newsprojectpractice.databinding.ActivityNewsBinding
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.serialization.Contextual
 
 class NewsActivity : AppCompatActivity() {
@@ -69,6 +71,12 @@ class NewsActivity : AppCompatActivity() {
             }
             R.id.action_logout -> {
                 // here log out with firebase
+                FirebaseAuth.getInstance().signOut()
+
+                val intent = Intent(this, LoginActivity::class.java)
+                startActivity(intent)
+
+                finish()
                 true
             }
             else -> super.onOptionsItemSelected(item)
