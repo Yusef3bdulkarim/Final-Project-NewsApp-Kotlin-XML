@@ -51,7 +51,7 @@
     <fragment
         android:id="@+id/headLinesFragment"
         android:name="com.example.myapplication.ui.fragments.HeadLinesFragment"
-        android:label="HeadLines" >
+        android:label="What's Now" >
         <action
             android:id="@+id/action_headLinesFragment_to_articleFragment"
             app:destination="@id/articleFragment" />
