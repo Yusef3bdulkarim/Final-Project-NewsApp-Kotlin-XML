@@ -31,7 +31,7 @@ class NewsActivity : AppCompatActivity() {
         binding = ActivityNewsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setSupportActionBar(binding.toolBar) // 🔹 مهم جداً
+        setSupportActionBar(binding.toolBar)
 
         val newsRepository = NewsRepository(ArticleDatabase(this))
         val viewModelProviderFactory = NewsViewModelProviderFactory(application, newsRepository)
