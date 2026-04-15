@@ -3,6 +3,7 @@ package com.example.newsprojectpractice.ui
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.ui.LoginActivity
 //import com.example.myapplication.databinding.ActivitySignupBinding
@@ -50,14 +51,26 @@ class SignUpActivity : AppCompatActivity() {
 
                         user?.sendEmailVerification()?.addOnCompleteListener { verificationTask ->
                             if (verificationTask.isSuccessful) {
-                                Toast.makeText(this, "Registration successful. Please check your email to verify your account.", Toast.LENGTH_LONG).show()
+
+                                val builder = AlertDialog.Builder(this)
+                                builder.setTitle("Verify your email")
+                                builder.setMessage("We've sent a verification link to $email. Please check your inbox and verify your account before logging in.")
+                                builder.setCancelable(false)
+                                builder.setPositiveButton("Back to Login") { _, _ ->
+                                    auth.signOut()
+                                    startActivity(Intent(this, LoginActivity::class.java))
+                                    finish()
+                                }
+                                builder.show()
+
+                                /*Toast.makeText(this, "Registration successful. Please check your email to verify your account.", Toast.LENGTH_LONG).show()
 
                                 auth.signOut()
 
 
                                 val intent = Intent(this, LoginActivity::class.java)
                                 startActivity(intent)
-                                finish()
+                                finish()*/
                             } else {
                                 Toast.makeText(this, "Failed to send verification email.", Toast.LENGTH_SHORT).show()
                             }
